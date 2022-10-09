@@ -1,16 +1,78 @@
-require('packer_bootstrap')
+local function ensure_packer()
+    local fn = vim.fn
+    local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
+    if fn.empty(fn.glob(install_path)) > 0 then
+        fn.system({ 'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path })
+        vim.cmd [[packadd packer.nvim]]
+        return true
+    end
+    return false
+end
 
-require('autocommands')
+-- TODO: MAYBE PORT THIS TO LUA WHEN YOU LEARN HOW TO
+-- vim.cmd([[
+-- 	augroup packer_user_config
+-- 		autocmd!
+-- 		autocmd BufWritePost init.lua source <afile> | PackerCompile
+-- 	augroup end
+-- ]])
+vim.cmd("set scrolloff=999 number relativenumber autoindent expandtab tabstop=4 shiftwidth=4")
 
-require('plugins')
+local packer_bootstrap = ensure_packer()
+
+require('packer').startup(function(use)
+    use { 'wbthomason/packer.nvim' }
+    use { 'williamboman/mason.nvim' }
+    use { "folke/lua-dev.nvim" }
+    use { 'neovim/nvim-lspconfig' }
+    use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
+
+
+    use { 'hrsh7th/cmp-nvim-lsp' }
+    use { 'hrsh7th/cmp-buffer' }
+    use { 'hrsh7th/cmp-path' }
+    use { 'hrsh7th/cmp-cmdline' }
+    use { 'hrsh7th/nvim-cmp' }
+
+    use { 'hrsh7th/cmp-vsnip' }
+    use { 'hrsh7th/vim-vsnip' }
+
+    use { "windwp/nvim-autopairs",
+        config = function() require("nvim-autopairs").setup {} end
+    }
+
+    use 'navarasu/onedark.nvim'
+    use 'karb94/neoscroll.nvim'
+    use 'kyazdani42/nvim-web-devicons'
+    use {
+        'nvim-telescope/telescope.nvim', tag = '0.1.0',
+        requires = { { 'nvim-lua/plenary.nvim' } }
+    }
+    use { 'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons' }
+    use { "akinsho/toggleterm.nvim", tag = '*', config = function()
+        require("toggleterm").setup()
+    end }
+    use {
+        "ahmedkhalf/project.nvim",
+        config = function()
+            require("project_nvim").setup {
+            }
+        end
+    }
+    use {
+        'numToStr/Comment.nvim',
+        config = function()
+            require('Comment').setup()
+        end
+    }
+    if packer_bootstrap then
+        require('packer').sync()
+    end
+end)
 
 require('mason').setup()
 
-
-
 require('lua-dev').setup({})
-
-vim.cmd("set scrolloff=999 number relativenumber autoindent expandtab tabstop=4 shiftwidth=4")
 
 require('onedark').setup {
     style = 'dark',
@@ -21,11 +83,12 @@ require('neoscroll').setup()
 
 vim.opt.termguicolors = true
 
-require('bufferline').setup{}
+require('bufferline').setup {}
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', 'ff', builtin.find_files, {})
-vim.keymap.set('n', 'fg', builtin.live_grep, {})
+vim.keymap.set('n', 'fg', builtin.git_files, {})
+vim.keymap.set('n', 'ft', builtin.live_grep, {})
 vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
 
@@ -34,15 +97,14 @@ vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+vim.keymap.set('n', '<C-s>', ':w<cr>')
+vim.keymap.set('n', '<space>c', ':bd<cr>')
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
+
 local on_attach = function(_, bufnr)
     -- Enable completion triggered by <c-x><c-o>
-    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+    -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-    -- Mappings.
-    -- See `:help vim.lsp.*` for documentation on any of the below functions
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
     vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
