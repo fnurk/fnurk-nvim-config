@@ -48,6 +48,10 @@ require('packer').startup(function(use)
         'nvim-telescope/telescope.nvim', tag = '0.1.0',
         requires = { { 'nvim-lua/plenary.nvim' } }
     }
+    use {
+        'ThePrimeagen/harpoon',
+        requires = { { 'nvim-lua/plenary.nvim' } }
+    }
     use { 'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons' }
     use { "akinsho/toggleterm.nvim", tag = '*', config = function()
         require("toggleterm").setup()
@@ -59,12 +63,14 @@ require('packer').startup(function(use)
             }
         end
     }
+
     use {
         'numToStr/Comment.nvim',
         config = function()
             require('Comment').setup()
         end
     }
+
     if packer_bootstrap then
         require('packer').sync()
     end
@@ -84,6 +90,7 @@ require('neoscroll').setup()
 vim.opt.termguicolors = true
 
 require('bufferline').setup {}
+require("harpoon").setup()
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', 'ff', builtin.find_files, {})
@@ -100,6 +107,14 @@ vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
 vim.keymap.set('n', '<space>c', ':bd<cr>')
 
+
+local harpoon_ui = require('harpoon.ui')
+vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
+vim.keymap.set('n', 'ml', require('harpoon.ui').toggle_quick_menu);
+vim.keymap.set('n', 'ma', function() harpoon_ui.nav_file(1) end)
+vim.keymap.set('n', 'mo', function() harpoon_ui.nav_file(2) end)
+vim.keymap.set('n', 'me', function() harpoon_ui.nav_file(3) end)
+vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
 local on_attach = function(_, bufnr)
     -- Enable completion triggered by <c-x><c-o>
