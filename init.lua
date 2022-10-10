@@ -16,7 +16,6 @@ end
 -- 		autocmd BufWritePost init.lua source <afile> | PackerCompile
 -- 	augroup end
 -- ]])
-vim.cmd("set scrolloff=999 number relativenumber autoindent expandtab tabstop=4 shiftwidth=4")
 
 local packer_bootstrap = ensure_packer()
 
@@ -34,12 +33,13 @@ require('packer').startup(function(use)
     use { 'hrsh7th/cmp-cmdline' }
     use { 'hrsh7th/nvim-cmp' }
 
-    use { 'hrsh7th/cmp-vsnip' }
-    use { 'hrsh7th/vim-vsnip' }
+    use { 'L3MON4D3/LuaSnip' }
+    use { 'saadparwaiz1/cmp_luasnip' }
 
     use { "windwp/nvim-autopairs",
         config = function() require("nvim-autopairs").setup {} end
     }
+    use "lukas-reineke/indent-blankline.nvim"
 
     use 'navarasu/onedark.nvim'
     use 'karb94/neoscroll.nvim'
@@ -58,6 +58,10 @@ require('packer').startup(function(use)
     end }
     use { 'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim' }
 
+    use {
+        'nvim-lualine/lualine.nvim',
+        requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+    }
     use { 'nvim-telescope/telescope-ui-select.nvim' }
 
     use {
@@ -67,6 +71,13 @@ require('packer').startup(function(use)
             }
         end
     }
+    use {
+        'tanvirtin/vgit.nvim',
+        requires = {
+            'nvim-lua/plenary.nvim'
+        }
+    }
+    use { "folke/which-key.nvim" }
 
     use {
         'numToStr/Comment.nvim',
@@ -95,12 +106,18 @@ require('onedark').setup {
     style = 'dark',
     transparent = true
 }
+
+require("indent_blankline").setup {
+    show_current_context = true,
+    show_current_context_start = true,
+}
+
 require('onedark').load()
 require('neoscroll').setup()
 
-vim.opt.termguicolors = true
-
+require("which-key").setup {}
 require('bufferline').setup {}
+require('lualine').setup({})
 require("harpoon").setup()
 
 require("telescope").setup({
@@ -113,6 +130,39 @@ require("telescope").setup({
 })
 require("telescope").load_extension("ui-select")
 
+vim.g.mapleader = ' '
+vim.o.updatetime = 300
+vim.o.incsearch = false
+vim.wo.signcolumn = 'yes'
+vim.opt.termguicolors = true
+vim.opt.scrolloff = 999
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.autoindent = true
+vim.opt.expandtab = true
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
+-- vim.cmd("set scrolloff=999 number relativenumber autoindent expandtab tabstop=4 shiftwidth=4")
+
+require('vgit').setup({
+    keymaps = {
+        -- ['n <C-k>'] = function() require('vgit').hunk_up() end,
+        -- ['n <C-j>'] = function() require('vgit').hunk_down() end,
+        -- ['n <leader>gs'] = function() require('vgit').buffer_hunk_stage() end,
+        -- ['n <leader>gr'] = function() require('vgit').buffer_hunk_reset() end,
+        -- ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
+        -- ['n <leader>gb'] = function() require('vgit').buffer_blame_preview() end,
+        -- ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
+        -- ['n <leader>gh'] = function() require('vgit').buffer_history_preview() end,
+        -- ['n <leader>gu'] = function() require('vgit').buffer_reset() end,
+        -- ['n <leader>gg'] = function() require('vgit').buffer_gutter_blame_preview() end,
+        -- ['n <leader>glu'] = function() require('vgit').buffer_hunks_preview() end,
+        -- ['n <leader>gls'] = function() require('vgit').project_hunks_staged_preview() end,
+        -- ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
+        -- ['n <leader>gq'] = function() require('vgit').project_hunks_qf() end,
+        -- ['n <leader>gx'] = function() require('vgit').toggle_diff_preference() end,
+    },
+})
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', 'ff', builtin.find_files, {})
@@ -120,14 +170,14 @@ vim.keymap.set('n', 'fg', builtin.git_files, {})
 vim.keymap.set('n', 'ft', builtin.live_grep, {})
 vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
+vim.keymap.set('n', 'fr', builtin.oldfiles, {})
 
-local opts = { noremap = true, silent = true }
+local opts = { noremap = true }
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
--- vim.keymap.set('n', '<space>c', ':bd<cr>')
 vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('run', 'r') end, opts)
 vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('run', 'R') end, opts)
 
@@ -166,12 +216,8 @@ local cmp = require 'cmp'
 
 cmp.setup({
     snippet = {
-        -- REQUIRED - you must specify a snippet engine
         expand = function(args)
-            vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-            -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
-            -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
-            -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+            require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
         end,
     },
     window = {
@@ -201,16 +247,12 @@ cmp.setup({
     }),
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
-        { name = 'vsnip' }, -- For vsnip users.
-        -- { name = 'luasnip' }, -- For luasnip users.
-        -- { name = 'ultisnips' }, -- For ultisnips users.
-        -- { name = 'snippy' }, -- For snippy users.
+        { name = 'luasnip' }, -- For luasnip users.
     }, {
         { name = 'buffer' },
     })
 })
 
--- Set configuration for specific filetype.
 cmp.setup.filetype('gitcommit', {
     sources = cmp.config.sources({
         { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
@@ -219,7 +261,6 @@ cmp.setup.filetype('gitcommit', {
     })
 })
 
--- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline({ '/', '?' }, {
     mapping = cmp.mapping.preset.cmdline(),
     sources = {
@@ -227,7 +268,6 @@ cmp.setup.cmdline({ '/', '?' }, {
     }
 })
 
--- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline(':', {
     mapping = cmp.mapping.preset.cmdline(),
     sources = cmp.config.sources({
@@ -259,18 +299,14 @@ require 'lspconfig'.sumneko_lua.setup {
     settings = {
         Lua = {
             runtime = {
-                -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
                 version = 'LuaJIT',
             },
             diagnostics = {
-                -- Get the language server to recognize the `vim` global
                 globals = { 'vim' },
             },
             workspace = {
-                -- Make the server aware of Neovim runtime files
                 library = vim.api.nvim_get_runtime_file("", true),
             },
-            -- Do not send telemetry data containing a randomized but unique identifier
             telemetry = {
                 enable = false,
             },
