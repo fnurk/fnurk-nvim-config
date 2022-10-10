@@ -142,7 +142,6 @@ vim.opt.autoindent = true
 vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
--- vim.cmd("set scrolloff=999 number relativenumber autoindent expandtab tabstop=4 shiftwidth=4")
 
 require('vgit').setup({
     keymaps = {
@@ -150,18 +149,23 @@ require('vgit').setup({
         -- ['n <C-j>'] = function() require('vgit').hunk_down() end,
         -- ['n <leader>gs'] = function() require('vgit').buffer_hunk_stage() end,
         -- ['n <leader>gr'] = function() require('vgit').buffer_hunk_reset() end,
-        -- ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
+        ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
         -- ['n <leader>gb'] = function() require('vgit').buffer_blame_preview() end,
-        -- ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
+        ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
         -- ['n <leader>gh'] = function() require('vgit').buffer_history_preview() end,
         -- ['n <leader>gu'] = function() require('vgit').buffer_reset() end,
         -- ['n <leader>gg'] = function() require('vgit').buffer_gutter_blame_preview() end,
         -- ['n <leader>glu'] = function() require('vgit').buffer_hunks_preview() end,
         -- ['n <leader>gls'] = function() require('vgit').project_hunks_staged_preview() end,
-        -- ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
+        ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
         -- ['n <leader>gq'] = function() require('vgit').project_hunks_qf() end,
         -- ['n <leader>gx'] = function() require('vgit').toggle_diff_preference() end,
     },
+    settings = {
+        live_blame = {
+            enabled = false;
+        }
+    }
 })
 
 local builtin = require('telescope.builtin')
@@ -194,7 +198,7 @@ local on_attach = function(_, bufnr)
     -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    vim.keymap.set('n', 'fs', require('telescope.builtin').lsp_dynamic_workspace_symbols, bufopts)
+    vim.keymap.set('n', 'gs', require('telescope.builtin').lsp_dynamic_workspace_symbols, bufopts)
     vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, bufopts)
     -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
