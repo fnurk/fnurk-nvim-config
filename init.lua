@@ -56,6 +56,10 @@ require('packer').startup(function(use)
     use { "akinsho/toggleterm.nvim", tag = '*', config = function()
         require("toggleterm").setup()
     end }
+    use { 'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim' }
+
+    use { 'nvim-telescope/telescope-ui-select.nvim' }
+
     use {
         "ahmedkhalf/project.nvim",
         config = function()
@@ -68,6 +72,13 @@ require('packer').startup(function(use)
         'numToStr/Comment.nvim',
         config = function()
             require('Comment').setup()
+        end
+    }
+
+    use {
+        'lewis6991/gitsigns.nvim',
+        config = function()
+            require('gitsigns').setup()
         end
     }
 
@@ -92,6 +103,17 @@ vim.opt.termguicolors = true
 require('bufferline').setup {}
 require("harpoon").setup()
 
+require("telescope").setup({
+    extensions = {
+        ["ui-select"] = {
+            require("telescope.themes").get_dropdown {
+            }
+        }
+    }
+})
+require("telescope").load_extension("ui-select")
+
+
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', 'ff', builtin.find_files, {})
 vim.keymap.set('n', 'fg', builtin.git_files, {})
@@ -105,8 +127,9 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
-vim.keymap.set('n', '<space>c', ':bd<cr>')
-
+-- vim.keymap.set('n', '<space>c', ':bd<cr>')
+vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('run', 'r') end, opts)
+vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('run', 'R') end, opts)
 
 local harpoon_ui = require('harpoon.ui')
 vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
@@ -121,10 +144,11 @@ local on_attach = function(_, bufnr)
     -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
-    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+    vim.keymap.set('n', 'fs', require('telescope.builtin').lsp_dynamic_workspace_symbols, bufopts)
+    vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, bufopts)
+    -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
-    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+    vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_implementations, bufopts)
     vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
     vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
@@ -134,7 +158,7 @@ local on_attach = function(_, bufnr)
     vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+    vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, bufopts)
     vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
@@ -215,6 +239,13 @@ cmp.setup.cmdline(':', {
 
 -- Set up lspconfig.
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+
+require('flutter-tools').setup({
+    lsp = {
+        on_attach = on_attach,
+        capabilities = capabilities
+    }
+})
 
 require 'lspconfig'.gopls.setup {
     on_attach = on_attach,
