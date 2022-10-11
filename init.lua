@@ -9,14 +9,6 @@ local function ensure_packer()
     return false
 end
 
--- TODO: MAYBE PORT THIS TO LUA WHEN YOU LEARN HOW TO
--- vim.cmd([[
--- 	augroup packer_user_config
--- 		autocmd!
--- 		autocmd BufWritePost init.lua source <afile> | PackerCompile
--- 	augroup end
--- ]])
-
 local packer_bootstrap = ensure_packer()
 
 require('packer').startup(function(use)
@@ -119,12 +111,14 @@ require("which-key").setup {}
 require('bufferline').setup {}
 require('lualine').setup({})
 require("harpoon").setup()
+require("luasnip").setup {
+    update_events = 'TextChanged,TextChangedI'
+}
 
 require("telescope").setup({
     extensions = {
         ["ui-select"] = {
-            require("telescope.themes").get_dropdown {
-            }
+            require("telescope.themes").get_dropdown {}
         }
     }
 })
@@ -142,6 +136,7 @@ vim.opt.autoindent = true
 vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
+vim.opt.autoindent = true
 
 require('vgit').setup({
     keymaps = {
@@ -175,6 +170,7 @@ vim.keymap.set('n', 'ft', builtin.live_grep, {})
 vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
 vim.keymap.set('n', 'fr', builtin.oldfiles, {})
+vim.keymap.set('n', 'fd', builtin.diagnostics, {})
 
 local opts = { noremap = true }
 vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
@@ -182,8 +178,8 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
-vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('run', 'r') end, opts)
-vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('run', 'R') end, opts)
+vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('{top-right}', 'r') end, opts)
+vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('{top-right}', 'R') end, opts)
 
 local harpoon_ui = require('harpoon.ui')
 vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
@@ -216,7 +212,14 @@ local on_attach = function(_, bufnr)
     vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
-local cmp = require 'cmp'
+require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
+
+local cmp = require("cmp")
+local luasnip = require("luasnip")
+local has_words_before = function()
+    local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+    return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+end
 
 cmp.setup({
     snippet = {
@@ -229,25 +232,32 @@ cmp.setup({
         -- documentation = cmp.config.window.bordered(),
     },
     mapping = cmp.mapping.preset.insert({
-        ['<S-Tab>'] = function(fallback)
-            if cmp.visible() then
-                cmp.select_prev_item()
-            else
-                fallback()
-            end
-        end,
-        ['<Tab>'] = function(fallback)
+        ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
                 cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+                luasnip.expand_or_jump()
+            elseif has_words_before() then
+                cmp.complete()
             else
                 fallback()
             end
-        end,
+        end, { "i", "s" }),
+
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<C-Space>'] = cmp.mapping.complete({}),
         ['<C-e>'] = cmp.mapping.abort(),
-        ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     }),
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
