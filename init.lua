@@ -170,9 +170,9 @@ require('vgit').setup({
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<space>f', builtin.find_files, {})
+vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fg', builtin.git_files, {})
 vim.keymap.set('n', 'ft', builtin.live_grep, {})
-vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
 vim.keymap.set('n', 'fr', builtin.oldfiles, {})
 vim.keymap.set('n', 'fe', builtin.diagnostics, {})
