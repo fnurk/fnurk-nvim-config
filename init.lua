@@ -14,6 +14,8 @@ local packer_bootstrap = ensure_packer()
 require('packer').startup(function(use)
     use { 'wbthomason/packer.nvim' }
     use { 'williamboman/mason.nvim' }
+    use { "williamboman/mason-lspconfig.nvim" }
+
     use { "folke/lua-dev.nvim" }
     use { 'neovim/nvim-lspconfig' }
     use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
@@ -69,6 +71,7 @@ require('packer').startup(function(use)
             'nvim-lua/plenary.nvim'
         }
     }
+    use { 'kdheepak/lazygit.nvim' }
     use { "folke/which-key.nvim" }
 
     use {
@@ -84,6 +87,7 @@ require('packer').startup(function(use)
             require('gitsigns').setup()
         end
     }
+    use { 'romainl/vim-cool' }
 
     if packer_bootstrap then
         require('packer').sync()
@@ -91,6 +95,7 @@ require('packer').startup(function(use)
 end)
 
 require('mason').setup()
+require("mason-lspconfig").setup()
 
 require('lua-dev').setup({})
 
@@ -136,23 +141,23 @@ vim.opt.autoindent = true
 vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
-vim.opt.autoindent = true
+vim.opt.ignorecase = true
 
 require('vgit').setup({
     keymaps = {
+        ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
+        ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
+        ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
         -- ['n <C-k>'] = function() require('vgit').hunk_up() end,
         -- ['n <C-j>'] = function() require('vgit').hunk_down() end,
         -- ['n <leader>gs'] = function() require('vgit').buffer_hunk_stage() end,
-        -- ['n <leader>gr'] = function() require('vgit').buffer_hunk_reset() end,
-        ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
+        -- ['n <leader>gr'] = function() require('git').buffer_hunk_reset() end,
         -- ['n <leader>gb'] = function() require('vgit').buffer_blame_preview() end,
-        ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
         -- ['n <leader>gh'] = function() require('vgit').buffer_history_preview() end,
         -- ['n <leader>gu'] = function() require('vgit').buffer_reset() end,
         -- ['n <leader>gg'] = function() require('vgit').buffer_gutter_blame_preview() end,
         -- ['n <leader>glu'] = function() require('vgit').buffer_hunks_preview() end,
         -- ['n <leader>gls'] = function() require('vgit').project_hunks_staged_preview() end,
-        ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
         -- ['n <leader>gq'] = function() require('vgit').project_hunks_qf() end,
         -- ['n <leader>gx'] = function() require('vgit').toggle_diff_preference() end,
     },
@@ -164,22 +169,24 @@ require('vgit').setup({
 })
 
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', 'ff', builtin.find_files, {})
+vim.keymap.set('n', '<space>f', builtin.find_files, {})
 vim.keymap.set('n', 'fg', builtin.git_files, {})
 vim.keymap.set('n', 'ft', builtin.live_grep, {})
 vim.keymap.set('n', 'fb', builtin.buffers, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
 vim.keymap.set('n', 'fr', builtin.oldfiles, {})
-vim.keymap.set('n', 'fd', builtin.diagnostics, {})
+vim.keymap.set('n', 'fe', builtin.diagnostics, {})
 
 local opts = { noremap = true }
-vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
 vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('{top-right}', 'r') end, opts)
 vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('{top-right}', 'R') end, opts)
+vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
+
+-- vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+-- vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 
 local harpoon_ui = require('harpoon.ui')
 vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
@@ -189,27 +196,36 @@ vim.keymap.set('n', 'mo', function() harpoon_ui.nav_file(2) end)
 vim.keymap.set('n', 'me', function() harpoon_ui.nav_file(3) end)
 vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
+local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
 local on_attach = function(_, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
+    vim.api.nvim_clear_autocmds({ group = augroup_format, buffer = bufnr })
+    vim.api.nvim_create_autocmd("BufWritePre", {
+        group = augroup_format,
+        buffer = bufnr,
+        callback = function()
+            vim.lsp.buf.format({ async = false, bufnr = bufnr })
+        end,
+    })
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gs', require('telescope.builtin').lsp_dynamic_workspace_symbols, bufopts)
     vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, bufopts)
-    -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
-    vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_implementations, bufopts)
+    vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, bufopts)
     vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
-    vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
-    vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
-    vim.keymap.set('n', '<space>wl', function()
-        print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    end, bufopts)
-    vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+    vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, bufopts)
-    vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+    -- vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+    -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+    -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+    -- vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+    -- vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+    -- vim.keymap.set('n', '<space>wl', function()
+    --     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+    -- end, bufopts)
 end
 
 require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
@@ -257,11 +273,11 @@ cmp.setup({
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
         ['<C-Space>'] = cmp.mapping.complete({}),
         ['<C-e>'] = cmp.mapping.abort(),
-        ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+        ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
-        { name = 'luasnip' }, -- For luasnip users.
+        { name = 'luasnip' },
     }, {
         { name = 'buffer' },
     })
