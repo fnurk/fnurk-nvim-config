@@ -11,13 +11,17 @@ end
 
 local packer_bootstrap = ensure_packer()
 
+vim.g.loaded = 1
+vim.g.loaded_netrwPlugin = 1
+
 require('packer').startup(function(use)
     use { 'wbthomason/packer.nvim' }
     use { 'williamboman/mason.nvim' }
     use { "williamboman/mason-lspconfig.nvim" }
 
-    use { "folke/lua-dev.nvim" }
+    use { "folke/neodev.nvim" }
     use { 'neovim/nvim-lspconfig' }
+    use { 'Issafalcon/lsp-overloads.nvim' }
     use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
 
 
@@ -50,7 +54,10 @@ require('packer').startup(function(use)
     use { "akinsho/toggleterm.nvim", tag = '*', config = function()
         require("toggleterm").setup()
     end }
+    use 'mfussenegger/nvim-dap'
+    use { "rcarriga/nvim-dap-ui", requires = { "mfussenegger/nvim-dap" } }
     use { 'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim' }
+    use { 'adelarsq/neofsharp.vim' }
 
     use {
         'nvim-lualine/lualine.nvim',
@@ -62,6 +69,12 @@ require('packer').startup(function(use)
         "ahmedkhalf/project.nvim",
         config = function()
             require("project_nvim").setup {
+                sync_root_with_cwd = true,
+                respect_buf_cwd = true,
+                update_focused_file = {
+                    enable = true,
+                    update_root = true
+                },
             }
         end
     }
@@ -71,6 +84,13 @@ require('packer').startup(function(use)
             'nvim-lua/plenary.nvim'
         }
     }
+    use {
+        'nvim-tree/nvim-tree.lua',
+        requires = {
+            'nvim-tree/nvim-web-devicons', -- optional, for file icons
+        },
+    }
+
     use { 'kdheepak/lazygit.nvim' }
     use { "folke/which-key.nvim" }
 
@@ -89,6 +109,8 @@ require('packer').startup(function(use)
     }
     use { 'romainl/vim-cool' }
 
+    use 'kristijanhusak/vim-carbon-now-sh'
+
     if packer_bootstrap then
         require('packer').sync()
     end
@@ -97,17 +119,20 @@ end)
 require('mason').setup()
 require("mason-lspconfig").setup()
 
-require('lua-dev').setup({})
+require('neodev').setup({})
 
 require('onedark').setup {
     style = 'dark',
     transparent = true
 }
+require('dap.ext.vscode').load_launchjs()
+require("dapui").setup()
 
-require("indent_blankline").setup {
-    show_current_context = true,
-    show_current_context_start = true,
-}
+
+-- require("indent_blankline").setup {
+--     show_current_context = true,
+--     show_current_context_start = true,
+-- }
 
 require('onedark').load()
 require('neoscroll').setup()
@@ -125,9 +150,38 @@ require("telescope").setup({
         ["ui-select"] = {
             require("telescope.themes").get_dropdown {}
         }
+    },
+    pickers = {
+        default = {
+            theme = "dropdown",
+        }
     }
 })
 require("telescope").load_extension("ui-select")
+require('telescope').load_extension('projects')
+require("nvim-tree").setup({
+    view = {
+        float = {
+            enable = true,
+            open_win_config = {
+                width = 60,
+                height = 80,
+            }
+        }
+    }
+})
+
+require("nvim-treesitter.configs").setup {
+    indent = {
+        enable = true
+    },
+    highlight = {
+        enable = true
+    },
+    incremental_selection = {
+        enable = true
+    }
+}
 
 vim.g.mapleader = ' '
 vim.o.updatetime = 300
@@ -142,6 +196,7 @@ vim.opt.expandtab = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.ignorecase = true
+vim.opt.cursorline = true
 
 require('vgit').setup({
     keymaps = {
@@ -175,18 +230,29 @@ vim.keymap.set('n', 'fg', builtin.git_files, {})
 vim.keymap.set('n', 'ft', builtin.live_grep, {})
 vim.keymap.set('n', 'fh', builtin.help_tags, {})
 vim.keymap.set('n', 'fr', builtin.oldfiles, {})
-vim.keymap.set('n', 'fe', builtin.diagnostics, {})
+vim.keymap.set('n', 'fe', function() builtin.diagnostics({ severity = vim.diagnostic.severity.ERROR }) end, {})
 
+local dap = require('dap')
+local dapui = require('dapui')
 local opts = { noremap = true }
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
-vim.keymap.set('n', '<space>rr', function() require('harpoon.tmux').sendCommand('{top-right}', 'r') end, opts)
-vim.keymap.set('n', '<space>rR', function() require('harpoon.tmux').sendCommand('{top-right}', 'R') end, opts)
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
+vim.keymap.set('n', '<space>rr', function() require('flutter-tools.commands').reload(true) end, opts)
+vim.keymap.set('n', '<space>rR', function() require('flutter-tools.commands').restart(true) end, opts)
 vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
+vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
+vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
+vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
+vim.keymap.set('n', '<F5>', dap.continue, opts)
+vim.keymap.set('n', '<F10>', dap.step_over, opts)
+vim.keymap.set('n', '<F11>', dap.step_into, opts)
+vim.keymap.set('n', '<F12>', dap.step_out, opts)
+vim.keymap.set('n', '<space>b', dap.toggle_breakpoint, opts)
+vim.keymap.set('n', '<space>dt', dapui.toggle, opts)
 
 -- vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
--- vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
 
 local harpoon_ui = require('harpoon.ui')
 vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
@@ -196,10 +262,15 @@ vim.keymap.set('n', 'mo', function() harpoon_ui.nav_file(2) end)
 vim.keymap.set('n', 'me', function() harpoon_ui.nav_file(3) end)
 vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
+
 local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
-local on_attach = function(_, bufnr)
+local on_attach = function(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+    if client.server_capabilities.signatureHelpProvider then
+        require('lsp-overloads').setup(client, {})
+    end
 
     vim.api.nvim_clear_autocmds({ group = augroup_format, buffer = bufnr })
     vim.api.nvim_create_autocmd("BufWritePre", {
@@ -308,12 +379,16 @@ cmp.setup.cmdline(':', {
 })
 
 -- Set up lspconfig.
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 require('flutter-tools').setup({
     lsp = {
         on_attach = on_attach,
         capabilities = capabilities
+    },
+
+    debugger = {
+        enabled = true,
     }
 })
 
@@ -322,6 +397,27 @@ require 'lspconfig'.gopls.setup {
     capabilities = capabilities
 }
 
+require 'lspconfig'.omnisharp.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+require 'lspconfig'.dockerls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+-- require 'lspconfig'.tflint.setup {
+--     on_attach = on_attach,
+--     capabilities = capabilities
+-- }
+require 'lspconfig'.terraformls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+
+require 'lspconfig'.fsautocomplete.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
 
 require 'lspconfig'.sumneko_lua.setup {
     on_attach = on_attach,
