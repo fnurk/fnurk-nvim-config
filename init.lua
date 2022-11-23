@@ -21,7 +21,12 @@ require('packer').startup(function(use)
 
     use { "folke/neodev.nvim" }
     use { 'neovim/nvim-lspconfig' }
+
     use { 'Issafalcon/lsp-overloads.nvim' }
+    use {
+        "ray-x/lsp_signature.nvim",
+    }
+
     use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
 
 
@@ -33,6 +38,8 @@ require('packer').startup(function(use)
 
     use { 'L3MON4D3/LuaSnip' }
     use { 'saadparwaiz1/cmp_luasnip' }
+
+    use { "rafamadriz/friendly-snippets" }
 
     use { "windwp/nvim-autopairs",
         config = function() require("nvim-autopairs").setup {} end
@@ -128,6 +135,7 @@ require('onedark').setup {
 require('dap.ext.vscode').load_launchjs()
 require("dapui").setup()
 
+require "lsp_signature".setup({})
 
 -- require("indent_blankline").setup {
 --     show_current_context = true,
@@ -218,7 +226,7 @@ require('vgit').setup({
     },
     settings = {
         live_blame = {
-            enabled = false;
+            enabled = true;
         }
     }
 })
@@ -264,6 +272,7 @@ vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
 
 local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
+local auggroup_onedit = vim.api.nvim_create_augroup("OnEdit", { clear = true })
 local on_attach = function(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -278,6 +287,14 @@ local on_attach = function(client, bufnr)
         buffer = bufnr,
         callback = function()
             vim.lsp.buf.format({ async = false, bufnr = bufnr })
+        end,
+    })
+    vim.api.nvim_clear_autocmds({ group = auggroup_onedit, buffer = bufnr })
+    vim.api.nvim_create_autocmd("InsertLeave", {
+        group = auggroup_onedit,
+        buffer = bufnr,
+        callback = function()
+            vim.lsp.codelens.refresh()
         end,
     })
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
@@ -300,6 +317,8 @@ local on_attach = function(client, bufnr)
 end
 
 require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
+require("luasnip.loaders.from_vscode").lazy_load()
+
 
 local cmp = require("cmp")
 local luasnip = require("luasnip")
