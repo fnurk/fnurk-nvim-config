@@ -46,6 +46,24 @@ require('packer').startup(function(use)
     }
     use "lukas-reineke/indent-blankline.nvim"
 
+
+    -- use { "zbirenbaum/copilot.lua" }
+    -- use {
+    --     "zbirenbaum/copilot-cmp",
+    --     after = { "copilot.lua" },
+    --     config = function()
+    --         require("copilot_cmp").setup()
+    --     end
+    -- }
+    use {
+        'MrcJkb/haskell-tools.nvim',
+        requires = {
+            'neovim/nvim-lspconfig',
+            'nvim-lua/plenary.nvim',
+            'nvim-telescope/telescope.nvim', -- optional
+        },
+    }
+
     use 'navarasu/onedark.nvim'
     use 'karb94/neoscroll.nvim'
     use 'kyazdani42/nvim-web-devicons'
@@ -65,6 +83,16 @@ require('packer').startup(function(use)
     use { "rcarriga/nvim-dap-ui", requires = { "mfussenegger/nvim-dap" } }
     use { 'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim' }
     use { 'adelarsq/neofsharp.vim' }
+    use { 'prettier/vim-prettier' }
+    use {
+        "nvim-neotest/neotest",
+        requires = {
+            "nvim-lua/plenary.nvim",
+            "nvim-treesitter/nvim-treesitter",
+            "antoinemadec/FixCursorHold.nvim",
+            "Issafalcon/neotest-dotnet"
+        }
+    }
 
     use {
         'nvim-lualine/lualine.nvim',
@@ -153,6 +181,38 @@ require("luasnip").setup {
     update_events = 'TextChanged,TextChangedI'
 }
 
+require("neotest").setup({
+    adapters = {
+        require("neotest-dotnet"),
+    },
+    output_panel = {
+        enabled = false,
+        open = "floating"
+    },
+
+})
+
+-- require("copilot").setup()
+
+require('dap').adapters.chrome = {
+    type = "executable",
+    command = "node",
+    args = { os.getenv("HOME") .. "/.local/share/nvim/mason/packages/chrome-debug-adapter/out/src/chromeDebug.js" } -- TODO adjust
+}
+
+require('dap').configurations.typescriptreact = { -- change to typescript if needed
+    {
+        type = "chrome",
+        request = "attach",
+        program = "${file}",
+        cwd = vim.fn.getcwd(),
+        sourceMaps = true,
+        protocol = "inspector",
+        port = 9222,
+        webRoot = "${workspaceFolder}"
+    }
+}
+
 require("telescope").setup({
     extensions = {
         ["ui-select"] = {
@@ -176,6 +236,11 @@ require("nvim-tree").setup({
                 height = 80,
             }
         }
+    },
+    update_focused_file = {
+        enable = true,
+        update_root = true,
+        ignore_list = {},
     }
 })
 
@@ -242,7 +307,7 @@ vim.keymap.set('n', 'fe', function() builtin.diagnostics({ severity = vim.diagno
 
 local dap = require('dap')
 local dapui = require('dapui')
-local opts = { noremap = true }
+local opts = { noremap = true, silent = true }
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
@@ -251,8 +316,11 @@ vim.keymap.set('n', '<space>rr', function() require('flutter-tools.commands').re
 vim.keymap.set('n', '<space>rR', function() require('flutter-tools.commands').restart(true) end, opts)
 vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
 vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
+vim.keymap.set('n', '<space>bn', ":bn<cr>", opts)
+vim.keymap.set('n', '<space>bp', ":bp<cr>", opts)
 vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
 vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
+vim.keymap.set('v', '<space>p', "\"_dP")
 vim.keymap.set('n', '<F5>', dap.continue, opts)
 vim.keymap.set('n', '<F10>', dap.step_over, opts)
 vim.keymap.set('n', '<F11>', dap.step_into, opts)
@@ -262,6 +330,13 @@ vim.keymap.set('n', '<space>dt', dapui.toggle, opts)
 
 -- vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
+local nt = require('neotest')
+vim.keymap.set('n', 'tr', function() nt.run.run() end);
+vim.keymap.set('n', 'to', function() nt.output.open({ enter = true }) end);
+vim.keymap.set('n', 'ts', nt.run.stop);
+vim.keymap.set('n', 'tt', nt.summary.toggle);
+vim.keymap.set('n', 'ta', function() nt.run.run(vim.fn.expand("%")) end);
+
 local harpoon_ui = require('harpoon.ui')
 vim.keymap.set('n', 'mt', require('harpoon.mark').toggle_file);
 vim.keymap.set('n', 'ml', require('harpoon.ui').toggle_quick_menu);
@@ -270,12 +345,20 @@ vim.keymap.set('n', 'mo', function() harpoon_ui.nav_file(2) end)
 vim.keymap.set('n', 'me', function() harpoon_ui.nav_file(3) end)
 vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
+-- vim.keymap.set('i', '<C-space', vim.lsp.omnifunc)
 
 local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
 local auggroup_onedit = vim.api.nvim_create_augroup("OnEdit", { clear = true })
 local on_attach = function(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
-    -- vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+    if vim.bo.filetype == "typescriptreact" or vim.bo.filetype == "typescript" then
+        vim.opt.tabstop = 2
+        vim.opt.shiftwidth = 2
+    else
+        vim.opt.tabstop = 4
+        vim.opt.shiftwidth = 4
+    end
 
     if client.server_capabilities.signatureHelpProvider then
         require('lsp-overloads').setup(client, {})
@@ -286,7 +369,11 @@ local on_attach = function(client, bufnr)
         group = augroup_format,
         buffer = bufnr,
         callback = function()
-            vim.lsp.buf.format({ async = false, bufnr = bufnr })
+            if vim.bo.filetype ~= "typescriptreact" and vim.bo.filetype ~= "typescript" then
+                vim.lsp.buf.format({ async = false, bufnr = bufnr })
+            else
+                vim.cmd(":Prettier")
+            end
         end,
     })
     vim.api.nvim_clear_autocmds({ group = auggroup_onedit, buffer = bufnr })
@@ -306,6 +393,7 @@ local on_attach = function(client, bufnr)
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
+    vim.keymap.set('n', '<space>cr', vim.lsp.codelens.run, opts)
     -- vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
     -- vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
     -- vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
@@ -318,6 +406,30 @@ end
 
 require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
 require("luasnip.loaders.from_vscode").lazy_load()
+
+local ht = require('haskell-tools')
+local def_opts = { noremap = true, silent = true, }
+ht.setup {
+    hls = {
+        -- See nvim-lspconfig's  suggested configuration for keymaps, etc.
+        on_attach = function(client, bufnr)
+            local hl_opts = vim.tbl_extend('keep', def_opts, { buffer = bufnr, })
+            -- haskell-language-server relies heavily on codeLenses,
+            -- so auto-refresh (see advanced configuration) is enabled by default
+            vim.keymap.set('n', '<space>hs', ht.hoogle.hoogle_signature, hl_opts)
+            on_attach(client, bufnr) -- if defined, see nvim-lspconfig
+        end,
+    },
+}
+-- Suggested keymaps that do not depend on haskell-language-server
+-- Toggle a GHCi repl for the current package
+vim.keymap.set('n', '<leader>rr', ht.repl.toggle, def_opts)
+vim.keymap.set('t', '<leader>rr', ht.repl.toggle, def_opts)
+-- Toggle a GHCi repl for the current buffer
+vim.keymap.set('n', '<leader>rf', function()
+    ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+end, def_opts)
+vim.keymap.set('n', '<leader>rq', ht.repl.quit, def_opts)
 
 
 local cmp = require("cmp")
@@ -361,13 +473,14 @@ cmp.setup({
         end, { "i", "s" }),
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
-        ['<C-Space>'] = cmp.mapping.complete({}),
+        -- ['C-Space>'] = cmp.mapping.complete({}),
         ['<C-e>'] = cmp.mapping.abort(),
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
+        -- { name = 'copilot' },
     }, {
         { name = 'buffer' },
     })
@@ -432,13 +545,24 @@ require 'lspconfig'.terraformls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
+require 'lspconfig'.html.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+
+require 'lspconfig'.tsserver.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+
+    filetypes = { "typescript", "typescriptreact" },
+}
 
 require 'lspconfig'.fsautocomplete.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
 
-require 'lspconfig'.sumneko_lua.setup {
+require 'lspconfig'.lua_ls.setup {
     on_attach = on_attach,
     capabilities = capabilities,
     settings = {
