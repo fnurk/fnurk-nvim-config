@@ -56,7 +56,7 @@ require('lazy').setup({
     'karb94/neoscroll.nvim',
     'nvim-tree/nvim-web-devicons',
     {
-        'nvim-telescope/telescope.nvim', tag = '0.1.0',
+        'nvim-telescope/telescope.nvim', version = '0.1.0',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
     },
 
@@ -65,9 +65,9 @@ require('lazy').setup({
         dependencies = { { 'nvim-lua/plenary.nvim' } }
     },
 
-    { 'akinsho/bufferline.nvim', tag = "v3.*", dependencies = 'nvim-tree/nvim-web-devicons' },
+    { 'akinsho/bufferline.nvim', version = "v3.*", dependencies = 'nvim-tree/nvim-web-devicons' },
 
-    { "akinsho/toggleterm.nvim", tag = '*', config = function()
+    { "akinsho/toggleterm.nvim", version = '*', config = function()
         require("toggleterm").setup()
     end
     },
@@ -165,7 +165,9 @@ require('neoscroll').setup()
 
 require("which-key").setup {}
 require('bufferline').setup {}
-require('lualine').setup({})
+require('lualine').setup({
+    theme = 'auto'
+})
 require("harpoon").setup()
 require("luasnip").setup {
     update_events = 'TextChanged,TextChangedI'
@@ -220,7 +222,7 @@ require('telescope').load_extension('projects')
 require("nvim-tree").setup({
     view = {
         float = {
-            enable = true,
+            enable = false,
             open_win_config = {
                 width = 60,
                 height = 80,
@@ -249,6 +251,7 @@ require("nvim-treesitter.configs").setup {
 vim.o.updatetime = 300
 vim.o.incsearch = false
 vim.wo.signcolumn = 'yes'
+vim.opt.cmdheight = 0
 vim.opt.termguicolors = true
 vim.opt.scrolloff = 999
 vim.opt.number = true
