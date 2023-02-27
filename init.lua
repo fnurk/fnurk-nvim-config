@@ -19,7 +19,11 @@ require('lazy').setup({
     "williamboman/mason-lspconfig.nvim",
 
     "folke/neodev.nvim",
-    'neovim/nvim-lspconfig',
+    { 'neovim/nvim-lspconfig',
+        dependencies = {
+            { 'j-hui/fidget.nvim', opts = {} },
+        }
+    },
 
     'Issafalcon/lsp-overloads.nvim',
     "ray-x/lsp_signature.nvim",
@@ -52,12 +56,28 @@ require('lazy').setup({
         },
     },
 
-    'navarasu/onedark.nvim',
+    { -- Theme inspired by Atom
+        'navarasu/onedark.nvim',
+        priority = 1000,
+        config = function()
+            vim.cmd.colorscheme 'onedark'
+        end,
+    },
+
     'karb94/neoscroll.nvim',
     'nvim-tree/nvim-web-devicons',
     {
         'nvim-telescope/telescope.nvim', version = '0.1.0',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
+    },
+    {
+        'nvim-telescope/telescope-fzf-native.nvim',
+        -- NOTE: If you are having trouble with this installation,
+        --       refer to the README for telescope-fzf-native for more instructions.
+        build = 'make',
+        cond = function()
+            return vim.fn.executable 'make' == 1
+        end,
     },
 
     {
@@ -90,9 +110,17 @@ require('lazy').setup({
         }
     },
 
-    {
+    { -- Set lualine as statusline
         'nvim-lualine/lualine.nvim',
-        dependencies = { 'nvim-tree/nvim-web-devicons', lazy = true }
+        -- See `:help lualine.txt`
+        opts = {
+            options = {
+                icons_enabled = false,
+                theme = 'onedark',
+                component_separators = '|',
+                section_separators = '',
+            },
+        },
     },
 
     { 'nvim-telescope/telescope-ui-select.nvim' },
@@ -137,9 +165,16 @@ require('lazy').setup({
 
     {
         'lewis6991/gitsigns.nvim',
-        config = function()
-            require('gitsigns').setup()
-        end
+        opts = {
+            -- See `:help gitsigns.txt`
+            signs = {
+                add = { text = '+' },
+                change = { text = '~' },
+                delete = { text = '_' },
+                topdelete = { text = '‾' },
+                changedelete = { text = '~' },
+            },
+        },
     },
 
     { 'romainl/vim-cool' },
@@ -287,6 +322,8 @@ require('vgit').setup({
         }
     }
 })
+
+pcall(require('telescope').load_extension, 'fzf')
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<space>f', builtin.find_files, {})
