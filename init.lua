@@ -1,106 +1,103 @@
-local function ensure_packer()
-    local fn = vim.fn
-    local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
-    if fn.empty(fn.glob(install_path)) > 0 then
-        fn.system({ 'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path })
-        vim.cmd [[packadd packer.nvim]]
-        return true
-    end
-    return false
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable", -- latest stable release
+        lazypath,
+    })
 end
+vim.opt.rtp:prepend(lazypath)
 
-local packer_bootstrap = ensure_packer()
+vim.g.mapleader = ' '
 
-vim.g.loaded = 1
-vim.g.loaded_netrwPlugin = 1
+require('lazy').setup({
 
-require('packer').startup(function(use)
-    use { 'wbthomason/packer.nvim' }
-    use { 'williamboman/mason.nvim' }
-    use { "williamboman/mason-lspconfig.nvim" }
+    'williamboman/mason.nvim',
+    "williamboman/mason-lspconfig.nvim",
 
-    use { "folke/neodev.nvim" }
-    use { 'neovim/nvim-lspconfig' }
+    "folke/neodev.nvim",
+    'neovim/nvim-lspconfig',
 
-    use { 'Issafalcon/lsp-overloads.nvim' }
-    use {
-        "ray-x/lsp_signature.nvim",
-    }
+    'Issafalcon/lsp-overloads.nvim',
+    "ray-x/lsp_signature.nvim",
 
-    use { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }
+    { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
 
-    use { 'hrsh7th/cmp-nvim-lsp' }
-    use { 'hrsh7th/cmp-buffer' }
-    use { 'hrsh7th/cmp-path' }
-    use { 'hrsh7th/cmp-cmdline' }
-    use { 'hrsh7th/nvim-cmp' }
+    'hrsh7th/cmp-nvim-lsp',
+    'hrsh7th/cmp-buffer',
+    'hrsh7th/cmp-path',
+    'hrsh7th/cmp-cmdline',
+    'hrsh7th/nvim-cmp',
 
-    use { 'L3MON4D3/LuaSnip' }
-    use { 'saadparwaiz1/cmp_luasnip' }
+    'L3MON4D3/LuaSnip',
+    'saadparwaiz1/cmp_luasnip',
+    "rafamadriz/friendly-snippets",
 
-    use { "rafamadriz/friendly-snippets" }
-
-    use { "windwp/nvim-autopairs",
+    { "windwp/nvim-autopairs",
         config = function() require("nvim-autopairs").setup {} end
-    }
-    use "lukas-reineke/indent-blankline.nvim"
+    },
 
+    "lukas-reineke/indent-blankline.nvim",
 
-    -- use { "zbirenbaum/copilot.lua" }
-    -- use {
-    --     "zbirenbaum/copilot-cmp",
-    --     after = { "copilot.lua" },
-    --     config = function()
-    --         require("copilot_cmp").setup()
-    --     end
-    -- }
-    use {
+    {
         'MrcJkb/haskell-tools.nvim',
-        requires = {
+        dependencies = {
             'neovim/nvim-lspconfig',
             'nvim-lua/plenary.nvim',
             'nvim-telescope/telescope.nvim', -- optional
         },
-    }
+    },
 
-    use 'navarasu/onedark.nvim'
-    use 'karb94/neoscroll.nvim'
-    use 'kyazdani42/nvim-web-devicons'
-    use {
+    'navarasu/onedark.nvim',
+    'karb94/neoscroll.nvim',
+    'nvim-tree/nvim-web-devicons',
+    {
         'nvim-telescope/telescope.nvim', tag = '0.1.0',
-        requires = { { 'nvim-lua/plenary.nvim' } }
-    }
-    use {
+        dependencies = { { 'nvim-lua/plenary.nvim' } }
+    },
+
+    {
         'ThePrimeagen/harpoon',
-        requires = { { 'nvim-lua/plenary.nvim' } }
-    }
-    use { 'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons' }
-    use { "akinsho/toggleterm.nvim", tag = '*', config = function()
+        dependencies = { { 'nvim-lua/plenary.nvim' } }
+    },
+
+    { 'akinsho/bufferline.nvim', tag = "v3.*", dependencies = 'nvim-tree/nvim-web-devicons' },
+
+    { "akinsho/toggleterm.nvim", tag = '*', config = function()
         require("toggleterm").setup()
-    end }
-    use 'mfussenegger/nvim-dap'
-    use { "rcarriga/nvim-dap-ui", requires = { "mfussenegger/nvim-dap" } }
-    use { 'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim' }
-    use { 'adelarsq/neofsharp.vim' }
-    use { 'prettier/vim-prettier' }
-    use {
+    end
+    },
+
+    'mfussenegger/nvim-dap',
+
+    { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
+
+    { 'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim' },
+
+    'prettier/vim-prettier',
+
+    {
         "nvim-neotest/neotest",
-        requires = {
+        dependencies = {
             "nvim-lua/plenary.nvim",
             "nvim-treesitter/nvim-treesitter",
             "antoinemadec/FixCursorHold.nvim",
             "Issafalcon/neotest-dotnet"
         }
-    }
+    },
 
-    use {
+    {
         'nvim-lualine/lualine.nvim',
-        requires = { 'kyazdani42/nvim-web-devicons', opt = true }
-    }
-    use { 'nvim-telescope/telescope-ui-select.nvim' }
+        dependencies = { 'nvim-tree/nvim-web-devicons', lazy = true }
+    },
 
-    use {
+    { 'nvim-telescope/telescope-ui-select.nvim' },
+
+    {
         "ahmedkhalf/project.nvim",
         config = function()
             require("project_nvim").setup {
@@ -112,44 +109,42 @@ require('packer').startup(function(use)
                 },
             }
         end
-    }
-    use {
+    },
+
+    {
         'tanvirtin/vgit.nvim',
-        requires = {
+        dependencies = {
             'nvim-lua/plenary.nvim'
         }
-    }
-    use {
+    },
+
+    {
         'nvim-tree/nvim-tree.lua',
-        requires = {
+        dependencies = {
             'nvim-tree/nvim-web-devicons', -- optional, for file icons
         },
-    }
+    },
 
-    use { 'kdheepak/lazygit.nvim' }
-    use { "folke/which-key.nvim" }
+    { 'kdheepak/lazygit.nvim' },
+    { "folke/which-key.nvim" },
 
-    use {
+    {
         'numToStr/Comment.nvim',
         config = function()
             require('Comment').setup()
         end
-    }
+    },
 
-    use {
+    {
         'lewis6991/gitsigns.nvim',
         config = function()
             require('gitsigns').setup()
         end
-    }
-    use { 'romainl/vim-cool' }
+    },
 
-    use 'kristijanhusak/vim-carbon-now-sh'
+    { 'romainl/vim-cool' },
 
-    if packer_bootstrap then
-        require('packer').sync()
-    end
-end)
+})
 
 require('mason').setup()
 require("mason-lspconfig").setup()
@@ -164,11 +159,6 @@ require('dap.ext.vscode').load_launchjs()
 require("dapui").setup()
 
 require "lsp_signature".setup({})
-
--- require("indent_blankline").setup {
---     show_current_context = true,
---     show_current_context_start = true,
--- }
 
 require('onedark').load()
 require('neoscroll').setup()
@@ -256,7 +246,6 @@ require("nvim-treesitter.configs").setup {
     }
 }
 
-vim.g.mapleader = ' '
 vim.o.updatetime = 300
 vim.o.incsearch = false
 vim.wo.signcolumn = 'yes'
@@ -407,31 +396,6 @@ end
 require("luasnip.loaders.from_lua").load({ paths = "./snippets" })
 require("luasnip.loaders.from_vscode").lazy_load()
 
-local ht = require('haskell-tools')
-local def_opts = { noremap = true, silent = true, }
-ht.setup {
-    hls = {
-        -- See nvim-lspconfig's  suggested configuration for keymaps, etc.
-        on_attach = function(client, bufnr)
-            local hl_opts = vim.tbl_extend('keep', def_opts, { buffer = bufnr, })
-            -- haskell-language-server relies heavily on codeLenses,
-            -- so auto-refresh (see advanced configuration) is enabled by default
-            vim.keymap.set('n', '<space>hs', ht.hoogle.hoogle_signature, hl_opts)
-            on_attach(client, bufnr) -- if defined, see nvim-lspconfig
-        end,
-    },
-}
--- Suggested keymaps that do not depend on haskell-language-server
--- Toggle a GHCi repl for the current package
-vim.keymap.set('n', '<leader>rr', ht.repl.toggle, def_opts)
-vim.keymap.set('t', '<leader>rr', ht.repl.toggle, def_opts)
--- Toggle a GHCi repl for the current buffer
-vim.keymap.set('n', '<leader>rf', function()
-    ht.repl.toggle(vim.api.nvim_buf_get_name(0))
-end, def_opts)
-vim.keymap.set('n', '<leader>rq', ht.repl.quit, def_opts)
-
-
 local cmp = require("cmp")
 local luasnip = require("luasnip")
 local has_words_before = function()
@@ -537,14 +501,12 @@ require 'lspconfig'.dockerls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
--- require 'lspconfig'.tflint.setup {
---     on_attach = on_attach,
---     capabilities = capabilities
--- }
+
 require 'lspconfig'.terraformls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
+
 require 'lspconfig'.html.setup {
     on_attach = on_attach,
     capabilities = capabilities
@@ -555,11 +517,6 @@ require 'lspconfig'.tsserver.setup {
     capabilities = capabilities,
 
     filetypes = { "typescript", "typescriptreact" },
-}
-
-require 'lspconfig'.fsautocomplete.setup {
-    on_attach = on_attach,
-    capabilities = capabilities
 }
 
 require 'lspconfig'.lua_ls.setup {
