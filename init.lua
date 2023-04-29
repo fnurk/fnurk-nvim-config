@@ -25,7 +25,15 @@ require('lazy').setup({
         }
     },
 
+    { "catppuccin/nvim", name = "catppuccin" },
+
     "ray-x/lsp_signature.nvim",
+
+    {
+        'christoomey/vim-tmux-navigator',
+        lazy = false
+    },
+
     { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
 
@@ -54,16 +62,9 @@ require('lazy').setup({
         },
     },
 
-    { -- Theme inspired by Atom
-        'navarasu/onedark.nvim',
-        priority = 1000,
-        config = function()
-            vim.cmd.colorscheme 'onedark'
-        end,
-    },
 
     'karb94/neoscroll.nvim',
-    'nvim-tree/nvim-web-devicons',
+    -- 'nvim-tree/nvim-web-devicons',
     {
         'nvim-telescope/telescope.nvim', version = '0.1.0',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
@@ -81,13 +82,6 @@ require('lazy').setup({
     {
         'ThePrimeagen/harpoon',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
-    },
-
-    { 'akinsho/bufferline.nvim', version = "v3.*", dependencies = 'nvim-tree/nvim-web-devicons' },
-
-    { "akinsho/toggleterm.nvim", version = '*', config = function()
-        require("toggleterm").setup()
-    end
     },
 
     'mfussenegger/nvim-dap',
@@ -114,7 +108,7 @@ require('lazy').setup({
         opts = {
             options = {
                 icons_enabled = false,
-                theme = 'onedark',
+                theme = 'catppuccin',
                 component_separators = '|',
                 section_separators = '',
             },
@@ -138,21 +132,12 @@ require('lazy').setup({
     },
 
     {
-        'tanvirtin/vgit.nvim',
-        dependencies = {
-            'nvim-lua/plenary.nvim'
-        }
-    },
-
-    {
-        'nvim-tree/nvim-tree.lua',
-        dependencies = {
-            'nvim-tree/nvim-web-devicons', -- optional, for file icons
-        },
+        'stevearc/oil.nvim',
+        opts = {},
+        dependencies = { "nvim-tree/nvim-web-devicons" },
     },
 
     { 'kdheepak/lazygit.nvim' },
-    { "folke/which-key.nvim" },
 
     {
         'numToStr/Comment.nvim',
@@ -185,20 +170,13 @@ require("mason-lspconfig").setup()
 
 require('neodev').setup({})
 
-require('onedark').setup {
-    style = 'dark',
-    transparent = true
-}
 require('dap.ext.vscode').load_launchjs()
 require("dapui").setup()
 
 require "lsp_signature".setup({})
 
-require('onedark').load()
 require('neoscroll').setup()
 
-require("which-key").setup {}
-require('bufferline').setup {}
 require('lualine').setup({
     theme = 'auto'
 })
@@ -217,6 +195,8 @@ require("neotest").setup({
     },
 
 })
+
+vim.cmd.colorscheme "catppuccin"
 
 require('dap').adapters.chrome = {
     type = "executable",
@@ -251,22 +231,24 @@ require("telescope").setup({
 })
 require("telescope").load_extension("ui-select")
 require('telescope').load_extension('projects')
-require("nvim-tree").setup({
-    view = {
-        float = {
-            enable = false,
-            open_win_config = {
-                width = 60,
-                height = 80,
-            }
-        }
-    },
-    update_focused_file = {
-        enable = true,
-        update_root = true,
-        ignore_list = {},
-    }
-})
+-- require("nvim-tree").setup({
+--     view = {
+--         float = {
+--             enable = false,
+--             open_win_config = {
+--                 width = 60,
+--                 height = 80,
+--             }
+--         }
+--     },
+--     update_focused_file = {
+--         enable = true,
+--         update_root = true,
+--         ignore_list = {},
+--     }
+-- })
+
+require("oil").setup()
 
 require("nvim-treesitter.configs").setup {
     indent = {
@@ -295,31 +277,6 @@ vim.opt.shiftwidth = 4
 vim.opt.ignorecase = true
 vim.opt.cursorline = true
 
-require('vgit').setup({
-    keymaps = {
-        ['n <leader>gp'] = function() require('vgit').buffer_hunk_preview() end,
-        ['n <leader>gf'] = function() require('vgit').buffer_diff_preview() end,
-        ['n <leader>gd'] = function() require('vgit').project_diff_preview() end,
-        -- ['n <C-k>'] = function() require('vgit').hunk_up() end,
-        -- ['n <C-j>'] = function() require('vgit').hunk_down() end,
-        -- ['n <leader>gs'] = function() require('vgit').buffer_hunk_stage() end,
-        -- ['n <leader>gr'] = function() require('git').buffer_hunk_reset() end,
-        -- ['n <leader>gb'] = function() require('vgit').buffer_blame_preview() end,
-        -- ['n <leader>gh'] = function() require('vgit').buffer_history_preview() end,
-        -- ['n <leader>gu'] = function() require('vgit').buffer_reset() end,
-        -- ['n <leader>gg'] = function() require('vgit').buffer_gutter_blame_preview() end,
-        -- ['n <leader>glu'] = function() require('vgit').buffer_hunks_preview() end,
-        -- ['n <leader>gls'] = function() require('vgit').project_hunks_staged_preview() end,
-        -- ['n <leader>gq'] = function() require('vgit').project_hunks_qf() end,
-        -- ['n <leader>gx'] = function() require('vgit').toggle_diff_preference() end,
-    },
-    settings = {
-        live_blame = {
-            enabled = true;
-        }
-    }
-})
-
 pcall(require('telescope').load_extension, 'fzf')
 
 local builtin = require('telescope.builtin')
@@ -338,14 +295,12 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
-vim.keymap.set('n', '<space>rr', function() require('flutter-tools.commands').reload(true) end, opts)
-vim.keymap.set('n', '<space>rR', function() require('flutter-tools.commands').restart(true) end, opts)
 vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
-vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
+-- vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
 vim.keymap.set('n', '<space>bn', ":bn<cr>", opts)
 vim.keymap.set('n', '<space>bp', ":bp<cr>", opts)
-vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
-vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
+-- vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
+-- vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
 vim.keymap.set('v', '<space>p', "\"_dP")
 vim.keymap.set('n', '<F5>', dap.continue, opts)
 vim.keymap.set('n', '<F10>', dap.step_over, opts)
@@ -354,7 +309,6 @@ vim.keymap.set('n', '<F12>', dap.step_out, opts)
 vim.keymap.set('n', '<space>b', dap.toggle_breakpoint, opts)
 vim.keymap.set('n', '<space>dt', dapui.toggle, opts)
 
--- vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
 local nt = require('neotest')
 vim.keymap.set('n', 'tr', function() nt.run.run() end);
@@ -371,7 +325,6 @@ vim.keymap.set('n', 'mo', function() harpoon_ui.nav_file(2) end)
 vim.keymap.set('n', 'me', function() harpoon_ui.nav_file(3) end)
 vim.keymap.set('n', 'mu', function() harpoon_ui.nav_file(4) end)
 
--- vim.keymap.set('i', '<C-space', vim.lsp.omnifunc)
 
 local augroup_format = vim.api.nvim_create_augroup("Format", { clear = true })
 local auggroup_onedit = vim.api.nvim_create_augroup("OnEdit", { clear = true })
@@ -477,7 +430,6 @@ cmp.setup({
     sources = cmp.config.sources({
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
-        -- { name = 'copilot' },
     }, {
         { name = 'buffer' },
     })
