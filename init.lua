@@ -25,9 +25,7 @@ require('lazy').setup({
         }
     },
 
-    'Issafalcon/lsp-overloads.nvim',
     "ray-x/lsp_signature.nvim",
-
     { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
 
@@ -106,7 +104,7 @@ require('lazy').setup({
             "nvim-lua/plenary.nvim",
             "nvim-treesitter/nvim-treesitter",
             "antoinemadec/FixCursorHold.nvim",
-            "Issafalcon/neotest-dotnet"
+            "nvim-neotest/neotest-go"
         }
     },
 
@@ -178,6 +176,7 @@ require('lazy').setup({
     },
 
     { 'romainl/vim-cool' },
+    'stevearc/vim-arduino',
 
 })
 
@@ -210,7 +209,7 @@ require("luasnip").setup {
 
 require("neotest").setup({
     adapters = {
-        require("neotest-dotnet"),
+        require("neotest-go"),
     },
     output_panel = {
         enabled = false,
@@ -218,8 +217,6 @@ require("neotest").setup({
     },
 
 })
-
--- require("copilot").setup()
 
 require('dap').adapters.chrome = {
     type = "executable",
@@ -389,10 +386,6 @@ local on_attach = function(client, bufnr)
         vim.opt.shiftwidth = 4
     end
 
-    if client.server_capabilities.signatureHelpProvider then
-        require('lsp-overloads').setup(client, {})
-    end
-
     vim.api.nvim_clear_autocmds({ group = augroup_format, buffer = bufnr })
     vim.api.nvim_create_autocmd("BufWritePre", {
         group = augroup_format,
@@ -543,6 +536,12 @@ require 'lspconfig'.dockerls.setup {
 }
 
 require 'lspconfig'.terraformls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+
+require 'lspconfig'.arduino_language_server.setup {
+    { "arduino-language-server", "-fqbn esp32:esp32:esp32s3camlcd" },
     on_attach = on_attach,
     capabilities = capabilities
 }
