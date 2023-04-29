@@ -64,7 +64,7 @@ require('lazy').setup({
 
 
     'karb94/neoscroll.nvim',
-    -- 'nvim-tree/nvim-web-devicons',
+    'nvim-tree/nvim-web-devicons',
     {
         'nvim-telescope/telescope.nvim', version = '0.1.0',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
@@ -131,10 +131,12 @@ require('lazy').setup({
         end
     },
 
+
     {
-        'stevearc/oil.nvim',
-        opts = {},
-        dependencies = { "nvim-tree/nvim-web-devicons" },
+        "nvim-tree/nvim-tree.lua",
+        requires = {
+            "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+        }
     },
 
     { 'kdheepak/lazygit.nvim' },
@@ -231,40 +233,21 @@ require("telescope").setup({
 })
 require("telescope").load_extension("ui-select")
 require('telescope').load_extension('projects')
--- require("nvim-tree").setup({
---     view = {
---         float = {
---             enable = false,
---             open_win_config = {
---                 width = 60,
---                 height = 80,
---             }
---         }
---     },
---     update_focused_file = {
---         enable = true,
---         update_root = true,
---         ignore_list = {},
---     }
--- })
-
-require("oil").setup({
-    columns = {
-        "icon",
-        -- "permissions",
-        "size",
-        -- "mtime",
+require("nvim-tree").setup({
+    view = {
+        float = {
+            enable = true,
+            open_win_config = {
+                width = 40,
+                height = 80,
+            }
+        }
     },
-    float = {
-        -- Padding around the floating window
-        padding = 2,
-        max_width = 80,
-        max_height = 0,
-        border = "rounded",
-        win_options = {
-            winblend = 10,
-        },
-    },
+    update_focused_file = {
+        enable = true,
+        update_root = true,
+        ignore_list = {},
+    }
 })
 
 require("nvim-treesitter.configs").setup {
@@ -313,8 +296,7 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
 vim.keymap.set('n', '<C-s>', ':w<cr>')
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
 vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
--- vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
-vim.keymap.set('n', '<space>e', ":Oil --float <cr>", opts)
+vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
 vim.keymap.set('n', '<space>bn', ":bn<cr>", opts)
 vim.keymap.set('n', '<space>bp', ":bp<cr>", opts)
 -- vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
