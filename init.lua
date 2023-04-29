@@ -248,7 +248,24 @@ require('telescope').load_extension('projects')
 --     }
 -- })
 
-require("oil").setup()
+require("oil").setup({
+    columns = {
+        "icon",
+        -- "permissions",
+        "size",
+        -- "mtime",
+    },
+    float = {
+        -- Padding around the floating window
+        padding = 2,
+        max_width = 80,
+        max_height = 0,
+        border = "rounded",
+        win_options = {
+            winblend = 10,
+        },
+    },
+})
 
 require("nvim-treesitter.configs").setup {
     indent = {
@@ -297,6 +314,7 @@ vim.keymap.set('n', '<C-s>', ':w<cr>')
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')
 vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
 -- vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
+vim.keymap.set('n', '<space>e', ":Oil --float <cr>", opts)
 vim.keymap.set('n', '<space>bn', ":bn<cr>", opts)
 vim.keymap.set('n', '<space>bp', ":bp<cr>", opts)
 -- vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
