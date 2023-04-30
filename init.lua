@@ -19,13 +19,14 @@ require('lazy').setup({
     "williamboman/mason-lspconfig.nvim",
 
     "folke/neodev.nvim",
-    { 'neovim/nvim-lspconfig',
+    {
+        'neovim/nvim-lspconfig',
         dependencies = {
             { 'j-hui/fidget.nvim', opts = {} },
         }
     },
 
-    { "catppuccin/nvim", name = "catppuccin" },
+    "one-dark/onedark.nvim",
 
     "ray-x/lsp_signature.nvim",
 
@@ -47,7 +48,8 @@ require('lazy').setup({
     'saadparwaiz1/cmp_luasnip',
     "rafamadriz/friendly-snippets",
 
-    { "windwp/nvim-autopairs",
+    {
+        "windwp/nvim-autopairs",
         config = function() require("nvim-autopairs").setup {} end
     },
 
@@ -66,7 +68,8 @@ require('lazy').setup({
     'karb94/neoscroll.nvim',
     'nvim-tree/nvim-web-devicons',
     {
-        'nvim-telescope/telescope.nvim', version = '0.1.0',
+        'nvim-telescope/telescope.nvim',
+        version = '0.1.0',
         dependencies = { { 'nvim-lua/plenary.nvim' } }
     },
     {
@@ -86,9 +89,8 @@ require('lazy').setup({
 
     'mfussenegger/nvim-dap',
 
-    { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
-
-    { 'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim' },
+    { "rcarriga/nvim-dap-ui",            dependencies = { "mfussenegger/nvim-dap" } },
+    { 'akinsho/flutter-tools.nvim',      dependencies = 'nvim-lua/plenary.nvim' },
 
     'prettier/vim-prettier',
 
@@ -102,13 +104,14 @@ require('lazy').setup({
         }
     },
 
-    { -- Set lualine as statusline
+    {
+        -- Set lualine as statusline
         'nvim-lualine/lualine.nvim',
         -- See `:help lualine.txt`
         opts = {
             options = {
                 icons_enabled = false,
-                theme = 'catppuccin',
+                theme = 'onedark',
                 component_separators = '|',
                 section_separators = '',
             },
@@ -134,7 +137,7 @@ require('lazy').setup({
 
     {
         "nvim-tree/nvim-tree.lua",
-        requires = {
+        dependencies = {
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
         }
     },
@@ -198,7 +201,7 @@ require("neotest").setup({
 
 })
 
-vim.cmd.colorscheme "catppuccin"
+vim.cmd.colorscheme "onedark"
 
 require('dap').adapters.chrome = {
     type = "executable",
