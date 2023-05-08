@@ -481,6 +481,14 @@ require 'lspconfig'.gopls.setup {
     capabilities = capabilities
 }
 
+require 'lspconfig'.elmls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    config = {
+
+    }
+}
+
 require 'lspconfig'.omnisharp.setup {
     on_attach = on_attach,
     capabilities = capabilities
