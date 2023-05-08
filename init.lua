@@ -56,7 +56,7 @@ require('lazy').setup({
     "lukas-reineke/indent-blankline.nvim",
 
 
-    'karb94/neoscroll.nvim',
+    -- 'karb94/neoscroll.nvim',
     'nvim-tree/nvim-web-devicons',
     {
         'nvim-telescope/telescope.nvim',
@@ -80,8 +80,8 @@ require('lazy').setup({
 
     'mfussenegger/nvim-dap',
 
-    { "rcarriga/nvim-dap-ui",            dependencies = { "mfussenegger/nvim-dap" } },
-    { 'akinsho/flutter-tools.nvim',      dependencies = 'nvim-lua/plenary.nvim' },
+    { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
+    { 'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim' },
 
     'prettier/vim-prettier',
 
@@ -156,7 +156,7 @@ require('lazy').setup({
         },
     },
 
-    { 'romainl/vim-cool' },
+    -- { 'romainl/vim-cool' },
     'stevearc/vim-arduino',
 })
 
@@ -170,7 +170,7 @@ require("dapui").setup()
 
 require "lsp_signature".setup({})
 
-require('neoscroll').setup()
+-- require('neoscroll').setup()
 
 require('lualine').setup({
     theme = 'auto'
@@ -270,6 +270,8 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.ignorecase = true
 vim.opt.cursorline = true
+vim.opt.hlsearch = false
+vim.opt.incsearch = false
 
 pcall(require('telescope').load_extension, 'fzf')
 
