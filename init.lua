@@ -55,15 +55,6 @@ require('lazy').setup({
 
     "lukas-reineke/indent-blankline.nvim",
 
-    {
-        'MrcJkb/haskell-tools.nvim',
-        dependencies = {
-            'neovim/nvim-lspconfig',
-            'nvim-lua/plenary.nvim',
-            'nvim-telescope/telescope.nvim', -- optional
-        },
-    },
-
 
     'karb94/neoscroll.nvim',
     'nvim-tree/nvim-web-devicons',
@@ -142,7 +133,7 @@ require('lazy').setup({
         }
     },
 
-    { 'kdheepak/lazygit.nvim' },
+    "kdheepak/lazygit.nvim",
 
     {
         'numToStr/Comment.nvim',
@@ -167,7 +158,6 @@ require('lazy').setup({
 
     { 'romainl/vim-cool' },
     'stevearc/vim-arduino',
-
 })
 
 require('mason').setup()
@@ -234,6 +224,7 @@ require("telescope").setup({
         }
     }
 })
+
 require("telescope").load_extension("ui-select")
 require('telescope').load_extension('projects')
 require("nvim-tree").setup({
@@ -477,6 +468,10 @@ require('flutter-tools').setup({
 })
 
 require 'lspconfig'.gopls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+require 'lspconfig'.elmls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
