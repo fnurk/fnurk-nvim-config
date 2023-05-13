@@ -26,7 +26,7 @@ require('lazy').setup({
         }
     },
 
-    "one-dark/onedark.nvim",
+    'navarasu/onedark.nvim',
 
     "ray-x/lsp_signature.nvim",
 
@@ -36,6 +36,8 @@ require('lazy').setup({
     },
 
     { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
+
+    { 'akinsho/toggleterm.nvim', version = "*", config = true },
 
 
     'hrsh7th/cmp-nvim-lsp',
@@ -57,7 +59,7 @@ require('lazy').setup({
 
 
     -- 'karb94/neoscroll.nvim',
-    'nvim-tree/nvim-web-devicons',
+    -- 'nvim-tree/nvim-web-devicons',
     {
         'nvim-telescope/telescope.nvim',
         version = '0.1.0',
@@ -128,9 +130,9 @@ require('lazy').setup({
 
     {
         "nvim-tree/nvim-tree.lua",
-        dependencies = {
-            "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-        }
+        -- dependencies = {
+        --     "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+        -- }
     },
 
     "kdheepak/lazygit.nvim",
@@ -191,7 +193,12 @@ require("neotest").setup({
 
 })
 
-vim.cmd.colorscheme "onedark"
+-- vim.cmd.colorscheme "onedark"
+-- Lua
+require('onedark').setup {
+    style = 'dark'
+}
+require('onedark').load()
 
 require('dap').adapters.chrome = {
     type = "executable",
@@ -295,8 +302,8 @@ vim.keymap.set('n', '<space>gg', ":LazyGit<cr>", opts)
 vim.keymap.set('n', '<space>e', ":NvimTreeToggle<cr>", opts)
 vim.keymap.set('n', '<space>bn', ":bn<cr>", opts)
 vim.keymap.set('n', '<space>bp', ":bp<cr>", opts)
--- vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
--- vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
+vim.keymap.set('n', '<C-t>', ":ToggleTerm<cr>")
+vim.keymap.set('t', '<C-t>', "<C-\\><C-n>:ToggleTerm<cr>")
 vim.keymap.set('v', '<space>p', "\"_dP")
 vim.keymap.set('n', '<F5>', dap.continue, opts)
 vim.keymap.set('n', '<F10>', dap.step_over, opts)
