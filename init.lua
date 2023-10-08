@@ -36,8 +36,7 @@ require('lazy').setup({
     },
 
     { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
-
-    { 'akinsho/toggleterm.nvim', version = "*", config = true },
+    { 'akinsho/toggleterm.nvim',         version = "*",      config = true },
 
 
     'hrsh7th/cmp-nvim-lsp',
@@ -82,7 +81,7 @@ require('lazy').setup({
 
     'mfussenegger/nvim-dap',
 
-    { "rcarriga/nvim-dap-ui", dependencies = { "mfussenegger/nvim-dap" } },
+    { "rcarriga/nvim-dap-ui",       dependencies = { "mfussenegger/nvim-dap" } },
     { 'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim' },
 
     'prettier/vim-prettier',
@@ -312,6 +311,8 @@ vim.keymap.set('n', '<F12>', dap.step_out, opts)
 vim.keymap.set('n', '<space>b', dap.toggle_breakpoint, opts)
 vim.keymap.set('n', '<space>dt', dapui.toggle, opts)
 
+vim.keymap.set('n', '<space>mr', ':make run<cr>', opts)
+
 
 local nt = require('neotest')
 vim.keymap.set('n', 'tr', function() nt.run.run() end);
@@ -354,20 +355,20 @@ local on_attach = function(client, bufnr)
             end
         end,
     })
-    vim.api.nvim_clear_autocmds({ group = auggroup_onedit, buffer = bufnr })
-    vim.api.nvim_create_autocmd("InsertLeave", {
-        group = auggroup_onedit,
-        buffer = bufnr,
-        callback = function()
-            vim.lsp.codelens.refresh()
-        end,
-    })
+    -- vim.api.nvim_clear_autocmds({ group = auggroup_onedit, buffer = bufnr })
+    -- vim.api.nvim_create_autocmd("InsertLeave", {
+    --     group = auggroup_onedit,
+    --     buffer = bufnr,
+    --     callback = function()
+    --         vim.lsp.codelens.refresh()
+    --     end,
+    -- })
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set('n', 'gs', require('telescope.builtin').lsp_dynamic_workspace_symbols, bufopts)
     vim.keymap.set('n', 'gd', require('telescope.builtin').lsp_definitions, bufopts)
     vim.keymap.set('n', 'gi', require('telescope.builtin').lsp_implementations, bufopts)
     vim.keymap.set('n', 'gr', require('telescope.builtin').lsp_references, bufopts)
-    vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+    -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
     vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
@@ -480,6 +481,11 @@ require 'lspconfig'.gopls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
+
+require 'lspconfig'.clangd.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
 require 'lspconfig'.elmls.setup {
     on_attach = on_attach,
     capabilities = capabilities
@@ -514,6 +520,11 @@ require 'lspconfig'.arduino_language_server.setup {
 }
 
 require 'lspconfig'.html.setup {
+    on_attach = on_attach,
+    capabilities = capabilities
+}
+
+require 'lspconfig'.cssls.setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
